@@ -1,4 +1,5 @@
 Steps to run the AddressBook Application
+_________________________________________
 1.clone the project
 2.Setup the database:
 3.Ensure SQL Server is installed.
@@ -9,6 +10,7 @@ Steps to run the AddressBook Application
 8.Run the Application
 
 Features
+________
 1.A table of Contacts are displayed in the page
 2.Option to create New Contact: Add a new contact with details like name, address, phone number, and email.
 3.Option to edit a Contact: Modify existing contact details.
