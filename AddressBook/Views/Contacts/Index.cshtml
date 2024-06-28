@@ -1,9 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Index";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
-<h1 class="mb-4">Index</h1>
+﻿
+<h1 class="mb-4">Contacts</h1>
 
 <div class="form-group">
     <input type="text" id="searchInput" class="form-control" placeholder="Search by Name">
@@ -87,15 +83,15 @@
 
                         data.forEach(function (item) {
                             var row = `
-                                                <tr>
-                                                    <td>${item.name}</td>
-                                                    <td>${item.phoneNumber}</td>
-                                                    <td>${item.address}</td>
-                                                    <td>${item.email}</td>
-                                                    <td>
-                                                        <button class="btn btn-primary mb-2" data-id="${item.id}" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
-                                                    </td>
-                                                </tr>`;
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${item.phoneNumber}</td>
+                                            <td>${item.address}</td>
+                                            <td>${item.email}</td>
+                                            <td>
+                                                <button class="btn btn-primary mb-2" data-id="${item.id}" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+                                            </td>
+                                        </tr>`;
                             tableBody.append(row);
                         });
                     },
@@ -103,6 +99,17 @@
                         console.error('Error fetching contacts', error);
                     }
                 });
+            }
+
+            // Function to validate contact data
+            function validateContactData(contact) {
+                if (!contact.Name || !contact.PhoneNumber || !contact.Address || !contact.Email) {
+                    alert('Please fill out all the fields');
+                    return false;
+                }
+               
+
+                return true; 
             }
 
             // Initial fetch of contacts
@@ -152,6 +159,11 @@
                     Email: $('#editEmail').val()
                 };
 
+                // Validate updated contact data
+                if (!validateContactData(updatedContact)) {
+                    return;
+                }
+
                 $.ajax({
                     url: `/Contacts/Edit/${editContactId}`,
                     method: 'PUT',
@@ -186,6 +198,41 @@
                         }
                     });
                 }
+            });
+
+            // Form submission for creating new contact
+            $('#createForm').submit(function (event) {
+                event.preventDefault();
+
+                var newContact = {
+                    Name: $('#name').val(),
+                    PhoneNumber: $('#phoneNumber').val(),
+                    Address: $('#address').val(),
+                    Email: $('#email').val()
+                };
+
+                // Validate new contact data
+                if (!validateContactData(newContact)) {
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Contacts/Create',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(newContact),
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Contact created successfully.');
+                            window.location.href = '/Contacts/Index'; // Redirect to Index page
+                        } else {
+                            alert('Failed to create contact: ' + response.message);
+                        }
+                    },
+                    error: function (error) {
+                        console.error('Error creating contact', error);
+                    }
+                });
             });
         });
     </script>

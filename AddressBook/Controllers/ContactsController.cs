@@ -16,43 +16,81 @@ namespace AddressBook.Controllers
         
         private readonly IContactDataService _contactDataService;
 
-        public ContactsController(IContactDataService contactDataService)
+        private readonly ILogger<ContactsController> _logger;
+
+        public ContactsController(IContactDataService contactDataService, ILogger<ContactsController> logger)
         {
-           
+
             _contactDataService = contactDataService;
+            _logger = logger;
         }
 
-        // GET: Contacts
+       /// <summary>
+       /// View for displaying Contacts
+       /// </summary>
+       /// <returns></returns>
         public async Task<IActionResult> Index()
         {
             return View();
         }
 
+        /// <summary>
+        /// Retrieves all contacts.
+        /// </summary>
+        /// <returns>An ActionResult containing a collection of Contact objects.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Contact>>> GetContacts()
         {
-            return await _contactDataService.GetAllContacts();
+            try
+            {
+                var contacts = await _contactDataService.GetAllContacts();
+                return Ok(contacts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving contacts.");
+                return StatusCode(500, "Internal server error");
+            }
         }
-
+        /// <summary>
+        /// Retrieves a contact by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the contact to retrieve.</param>
+        /// <returns>An ActionResult containing the Contact object, or a not found response if the contact does not exist.</returns>
         [HttpGet]
-        public async Task<ActionResult<Contact>>GetContactById(int id)
+        public async Task<ActionResult<Contact>> GetContactById(int id)
         {
-            return await _contactDataService.FindContact(id);
+            try
+            {
+                var contact = await _contactDataService.FindContact(id);
 
+                if (contact == null)
+                {
+                    return NotFound(); // Return 404 Not Found if contact with specified ID is not found
+                }
+
+                return Ok(contact); // Return 200 OK with the retrieved contact
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while retrieving contact with ID {id}.");
+                return StatusCode(500, "Internal server error");
+            }
         }
-       
-      
 
-      
+        /// <summary>
+        /// Displays the view for creating contacts.
+        /// </summary>
+        /// <returns>An IActionResult representing the Create view.</returns>
         public IActionResult Create()
         {
             return View();
         }
-
-        // POST: Contacts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        /// <summary>
+        /// Creates a new contact.
+        /// </summary>
+        /// <param name="contact">The Contact object containing information to create.</param>
+        /// <returns>A JSON response indicating success or failure with an optional message.</returns>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Contact contact)
         {
@@ -67,30 +105,56 @@ namespace AddressBook.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception if needed
-                return Json(new { success = false, message = ex.Message });
+                _logger.LogError(ex, "An error occurred while creating a contact.");
+                return Json(new { success = false, message = "An error occurred while creating a contact." });
             }
         }
 
+        /// <summary>
+        /// Updates a contact.
+        /// </summary>
+        /// <param name="id">The ID of the contact to update.</param>
+        /// <param name="updatedContact">The updated Contact object.</param>
+        /// <returns>A  response indicating success or failure with an optional message.</returns>
 
         [HttpPut]
-        public async Task<IActionResult> Edit([FromBody] Contact updatedContact)
+        public async Task<IActionResult> Edit(int id, [FromBody] Contact updatedContact)
         {
-            if (updatedContact == null || !ModelState.IsValid)
+           
+
+            try
             {
-                return BadRequest(new { success = false, message = "Invalid data" });
-            }        
-           var updated =await  _contactDataService.UpdateContact(updatedContact);           
-            return Ok(new { success = true });
+                if (updatedContact == null || updatedContact.Id != id || !ModelState.IsValid)
+                {
+                    return BadRequest(new { success = false, message = "Invalid data" });
+                }
+                var updated = await _contactDataService.UpdateContact(updatedContact);
+                return Ok(new { success = true, message = "Contact updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Error updating contact: {ex.Message}" });
+            }
         }
 
-      
-
+        /// <summary>
+        /// Deletes a contact by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the contact to delete.</param>
+        /// <returns>An IActionResult indicating success or failure.</returns>
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
-           await _contactDataService.DeleteContact(id);
-            return NoContent();
+            try
+            {
+                await _contactDataService.DeleteContact(id);
+                return NoContent(); // 204 No Content response indicates successful deletion
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while deleting contact with ID {id}.");
+                return StatusCode(500, new { success = false, message = $"Error deleting contact: {ex.Message}" });
+            }
         }
 
 
