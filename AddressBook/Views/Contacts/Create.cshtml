@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class="mb-4">Create New Contact</h1>
+
+<form id="createForm">
+    <div class="form-group">
+        <label for="name" class="control-label">Name</label>
+        <input type="text" id="name" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="phoneNumber" class="control-label">Phone Number</label>
+        <input type="text" id="phoneNumber" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="address" class="control-label">Address</label>
+        <input type="text" id="address" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label for="email" class="control-label">Email</label>
+        <input type="email" id="email" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#createForm').submit(function (event) {
+                event.preventDefault();
+
+                var newContact = {
+                    Name: $('#name').val(),
+                    PhoneNumber: $('#phoneNumber').val(),
+                    Address: $('#address').val(),
+                    Email: $('#email').val()
+                };
+
+                $.ajax({
+                    url: '/Contacts/Create',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(newContact),
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Contact created successfully.');
+                            window.location.href = '/Contacts/Index'; // Redirect to Index page
+                        } else {
+                            alert('Failed to create contact: ' + response.message);
+                        }
+                    },
+                    error: function (error) {
+                        console.error('Error creating contact', error);
+                    }
+                });
+            });
+        });
+    </script>
+}

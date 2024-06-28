@@ -7,7 +7,7 @@ namespace AddressBook.Service.Configurations
     {
         public static void AddApplicationServices(this IServiceCollection services)
         {
-            services.AddTransient<IContactDataService, ContactDataService>();
+            services.AddScoped<IContactDataService, ContactDataService>();
         }
     }
 }
